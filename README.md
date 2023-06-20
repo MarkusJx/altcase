@@ -5,7 +5,7 @@ Command-line utility for converting text to aLtErNaTiNg CaSe.
 ## Installation
 
 ```sh
-npm install -g https://github.com/MarkusJx/altcase.git
+npm install -g altcase
 ```
 
 ## Usage
