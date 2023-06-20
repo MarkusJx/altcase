@@ -1,7 +1,7 @@
 {
     "name": "altcase",
-    "version": "1.0.0",
-    "description": "",
+    "version": "0.1.0",
+    "description": "Convert text to alternating case",
     "main": "index.js",
     "scripts": {
         "start": "node --enable-source-maps dist/index.prod.min.js",
