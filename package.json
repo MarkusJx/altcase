@@ -2,7 +2,16 @@
     "name": "altcase",
     "version": "0.1.0",
     "description": "Convert text to alternating case",
-    "main": "index.js",
+    "exports": {
+        "default": "./dist/index.mjs"
+    },
+    "files": [
+        "dist/index.mjs"
+    ],
+    "engines": {
+        "node": ">=14.16"
+    },
+    "repository": "https://github.com/MarkusJx/altcase",
     "scripts": {
         "start": "node --enable-source-maps dist/index.prod.min.js",
         "prestart": "npm run build",
@@ -12,7 +21,10 @@
     "bin": {
         "altcase": "./dist/index.mjs"
     },
-    "keywords": [],
+    "keywords": [
+        "shell",
+        "command-line-utility"
+    ],
     "author": "MarkusJx",
     "license": "MIT",
     "type": "module",

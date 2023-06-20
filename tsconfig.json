@@ -26,7 +26,6 @@
         "noImplicitOverride": true,
         "skipLibCheck": true,
         "allowSyntheticDefaultImports": true
-        //"rootDir": "./src/**/*"
     },
-    "exclude": ["node_modules", "./webpack.config.ts"]
+    "exclude": ["node_modules"]
 }
