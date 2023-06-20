@@ -7,7 +7,7 @@
         "start": "node --enable-source-maps dist/index.prod.min.js",
         "prestart": "npm run build",
         "build": "tsc",
-        "format": "prettier --write src package.json tsconfig.json README.md"
+        "format": "prettier --write ."
     },
     "bin": {
         "altcase": "./dist/index.mjs"
