@@ -25,7 +25,8 @@
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
         "skipLibCheck": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "noEmit": false
     },
     "exclude": ["node_modules"]
 }

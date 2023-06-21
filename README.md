@@ -19,9 +19,12 @@ Positionals:
 Options:
       --help                Show help                                  [boolean]
       --version             Show version number                        [boolean]
-  -s, --settings                                                       [boolean]
+  -s, --settings            Display settings                           [boolean]
   -u, --startWithUppercase  Whether to start the text using upper case
                                                        [boolean] [default: true]
+  -f, --file                A file to convert to alternating case. Requires two
+                            strings as an input, the first one is the input, the
+                             second the output                           [array]
 ```
 
 ## Why?

@@ -1,97 +1,59 @@
-#!/usr/bin/env node
-import yargs from 'yargs';
-import type * as yargsTypes from 'yargs';
-import Conf from 'conf';
+import yargs, { BuilderCallback, ArgumentsCamelCase } from 'yargs';
 import inquirer from 'inquirer';
 import clipboard from 'clipboardy';
+import fs from 'node:fs/promises';
+import Config, { ConfigKeys } from './config.mjs';
+import { fileExists, toAltCase } from './util.mjs';
 
 interface Args {
     words?: string[];
     settings: boolean;
     startWithUppercase: boolean;
+    file?: string[];
 }
 
 interface SettingsResult {
-    settings: (keyof Config)[];
+    settings: ConfigKeys[];
 }
 
-type YargsHandler<T> = (
-    args: yargsTypes.ArgumentsCamelCase<T>
-) => Promise<void>;
+type YargsHandler<T> = (args: ArgumentsCamelCase<T>) => Promise<void>;
 
-interface Config {
-    copyToClipboard: boolean;
-    startWithUppercase: boolean;
-    randomCase: boolean;
-}
-
-const configDefaults: Config = {
-    copyToClipboard: false,
-    startWithUppercase: true,
-    randomCase: false,
-};
-
-const configKeys = Object.keys(configDefaults) as (keyof Config)[];
-
-const config = new Conf<Config>({
-    projectName: 'altcase',
-    defaults: configDefaults,
-});
-
-const builder: yargsTypes.BuilderCallback<{}, Args> = (command) => {
+const builder: BuilderCallback<{}, Args> = (command) => {
     command
         .positional('words', {
             describe: 'The words',
             type: 'string',
         })
         .option('settings', {
-            boolean: true,
+            type: 'boolean',
             description: 'Display settings',
             alias: 's',
         })
-        .conflicts('settings', 'words')
         .option('startWithUppercase', {
-            boolean: true,
-            default: config.get('startWithUppercase'),
+            type: 'boolean',
+            default: Config.get('startWithUppercase'),
             description: 'Whether to start the text using upper case',
             alias: 'u',
         })
-        .showHelpOnFail(true);
-};
-
-const toAltCase = (str: string[], startWithUppercase: boolean): string => {
-    let lowerCase = startWithUppercase;
-
-    const isLowerCase = (i: number) => {
-        lowerCase = !lowerCase;
-        if (i === 0 && startWithUppercase) {
-            return false;
-        } else if (config.get('randomCase')) {
-            return Math.round(Math.random()) === 0;
-        } else {
-            return lowerCase;
-        }
-    };
-
-    return str
-        .join(' ')
-        .split('')
-        .map((s, i) => {
-            if (s === ' ') return s;
-
-            if (isLowerCase(i)) {
-                return s.toLocaleLowerCase();
-            } else {
-                return s.toLocaleUpperCase();
-            }
+        .option('file', {
+            type: 'string',
+            array: true,
+            description:
+                'A file to convert to alternating case. Requires two strings as ' +
+                'an input, the first one is the input, the second the output',
+            alias: 'f',
         })
-        .join('');
+        .conflicts('settings', 'words')
+        .conflicts('settings', 'file')
+        .conflicts('words', 'file')
+        .showHelpOnFail(true);
 };
 
 const handler: YargsHandler<Args> = async ({
     words,
     settings,
     startWithUppercase,
+    file,
 }) => {
     if (settings) {
         const res: SettingsResult = await inquirer.prompt([
@@ -103,34 +65,47 @@ const handler: YargsHandler<Args> = async ({
                     {
                         name: 'Copy to clipboard',
                         value: 'copyToClipboard',
-                        checked: config.get('copyToClipboard'),
+                        checked: Config.get('copyToClipboard'),
                     },
                     {
                         name: 'Start with upper case',
                         value: 'startWithUppercase',
-                        checked: config.get('startWithUppercase'),
+                        checked: Config.get('startWithUppercase'),
                     },
                     {
                         name: 'Randomize casing',
                         value: 'randomCase',
-                        checked: config.get('randomCase'),
+                        checked: Config.get('randomCase'),
                     },
                 ],
             },
         ]);
 
-        for (let key of configKeys) {
-            config.set(key, res.settings.includes(key));
+        for (let key of Config.configKeys) {
+            Config.set(key, res.settings.includes(key));
         }
     } else if (words) {
         const converted = toAltCase(words, startWithUppercase);
-        if (config.get('copyToClipboard')) {
+        if (Config.get('copyToClipboard')) {
             await clipboard.write(converted);
         }
 
         console.log(converted);
+    } else if (file) {
+        if (file.length != 2 || !file[0]?.trim() || !file[1]?.trim()) {
+            throw 'Error: --file requires exactly 2 arguments';
+        } else if (await fileExists(file[1])) {
+            throw 'Error: The output file already exists';
+        }
+
+        const contents = await fs.readFile(file[0], 'utf-8');
+        await fs.writeFile(
+            file[1],
+            toAltCase(contents, startWithUppercase),
+            'utf-8'
+        );
     } else {
-        throw 'Error: Either --settings or words are required';
+        throw 'Error: Either --settings, --file or words are required';
     }
 };
 
