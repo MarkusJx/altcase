@@ -7,7 +7,7 @@ const dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export default {
     mode: 'production',
-    target: 'es2022',
+    target: 'es2020',
     entry: './src/index.mts',
     output: {
         path: path.join(dirname, 'dist'),
