@@ -1,15 +1,13 @@
 import fs from 'node:fs/promises';
 import Config from './config.mjs';
+import { Args } from './types.mjs';
 
-export const toAltCase = (
-    str: string[] | string,
-    startWithUppercase: boolean
-): string => {
-    let lowerCase = startWithUppercase;
+export const toAltCase = (str: string[] | string, args: Args): string => {
+    let lowerCase = args.startWithUppercase && !args.startWithLowercase;
 
     const isLowerCase = (i: number) => {
         lowerCase = !lowerCase;
-        if (i === 0 && startWithUppercase) {
+        if (i === 0 && args.startWithUppercase && !args.startWithLowercase) {
             return false;
         } else if (Config.get('randomCase')) {
             return Math.round(Math.random()) === 0;

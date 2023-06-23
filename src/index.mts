@@ -1,22 +1,10 @@
-import yargs, { BuilderCallback, ArgumentsCamelCase } from 'yargs';
+import yargs, { BuilderCallback } from 'yargs';
 import inquirer from 'inquirer';
 import clipboard from 'clipboardy';
 import fs from 'node:fs/promises';
-import Config, { ConfigKeys } from './config.mjs';
+import Config from './config.mjs';
 import { fileExists, toAltCase } from './util.mjs';
-
-interface Args {
-    words?: string[];
-    settings: boolean;
-    startWithUppercase: boolean;
-    file?: string[];
-}
-
-interface SettingsResult {
-    settings: ConfigKeys[];
-}
-
-type YargsHandler<T> = (args: ArgumentsCamelCase<T>) => Promise<void>;
+import type { Args, SettingsResult, YargsHandler } from './types.mjs';
 
 const builder: BuilderCallback<{}, Args> = (command) => {
     command
@@ -35,6 +23,11 @@ const builder: BuilderCallback<{}, Args> = (command) => {
             description: 'Whether to start the text using upper case',
             alias: 'u',
         })
+        .option('startWithLowercase', {
+            type: 'boolean',
+            description: 'Whether to start the text using lower case',
+            alias: 'l',
+        })
         .option('file', {
             type: 'string',
             array: true,
@@ -49,12 +42,9 @@ const builder: BuilderCallback<{}, Args> = (command) => {
         .showHelpOnFail(true);
 };
 
-const handler: YargsHandler<Args> = async ({
-    words,
-    settings,
-    startWithUppercase,
-    file,
-}) => {
+const handler: YargsHandler<Args> = async (args) => {
+    const { settings, words, file } = args;
+
     if (settings) {
         const res: SettingsResult = await inquirer.prompt([
             {
@@ -85,7 +75,7 @@ const handler: YargsHandler<Args> = async ({
             Config.set(key, res.settings.includes(key));
         }
     } else if (words) {
-        const converted = toAltCase(words, startWithUppercase);
+        const converted = toAltCase(words, args);
         if (Config.get('copyToClipboard')) {
             await clipboard.write(converted);
         }
@@ -99,11 +89,7 @@ const handler: YargsHandler<Args> = async ({
         }
 
         const contents = await fs.readFile(file[0], 'utf-8');
-        await fs.writeFile(
-            file[1],
-            toAltCase(contents, startWithUppercase),
-            'utf-8'
-        );
+        await fs.writeFile(file[1], toAltCase(contents, args), 'utf-8');
     } else {
         throw 'Error: Either --settings, --file or words are required';
     }
